@@ -64,6 +64,15 @@ class _RegisterSchoolPageState extends State<RegisterSchoolPage> {
       _obscureConfirmPassword = !_obscureConfirmPassword;
     });
   }
+  
+  void _onMapLocationSelected(String lat, String lng, String address) {
+    setState(() {
+      // For instance, you might want to re-validate the form fields related to location.
+      // Or just ensure the state reflects the new values.
+    });
+    print('Selected Lat: $lat, Lng: $lng, Address: $address');
+  }
+
 
   Future<void> _determineAndSetPosition() async {
     setState(() {
@@ -218,6 +227,8 @@ class _RegisterSchoolPageState extends State<RegisterSchoolPage> {
       obscureConfirmPassword: _obscureConfirmPassword,
       togglePasswordVisibility: _togglePasswordVisibility,
       toggleConfirmPasswordVisibility: _toggleConfirmPasswordVisibility,
+      context: context, 
+      onMapLocationSelected: _onMapLocationSelected,
     );
 
     return Scaffold(

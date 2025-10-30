@@ -14,12 +14,10 @@ class Api {
     return await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'schoolEmail': email,
-        'schoolPassword': password,
-      }),
+      body: jsonEncode({'schoolEmail': email, 'schoolPassword': password}),
     );
   }
+
   // get a school by its email address
   static Future<http.Response> getSchoolByEmail(String email) async {
     final response = await http.get(
@@ -28,10 +26,19 @@ class Api {
     return response;
   }
 
+  static Future<http.Response> deleteSchool(String schoolId) async {
+    final url = Uri.parse(
+      "${baseUrl}school/deleteSchool/$schoolId",
+    );
+    return await http.delete(url);
+  }
+
   //instructor API
   // list instructor
   static Future<http.Response> listInstructors(String schoolId) async {
-    final url = Uri.parse("${baseUrl}instructor/listInstructorBySchool/$schoolId");
+    final url = Uri.parse(
+      "${baseUrl}instructor/listInstructorBySchool/$schoolId",
+    );
     return await http.get(url);
   }
 
@@ -43,13 +50,17 @@ class Api {
 
   // get instructor by ID
   static Future<http.Response> getInstructorById(String instructorId) async {
-    final url = Uri.parse("${baseUrl}instructor/getInstructorById/$instructorId");
+    final url = Uri.parse(
+      "${baseUrl}instructor/getInstructorById/$instructorId",
+    );
     return await http.get(url);
   }
 
   // delete instructor
   static Future<http.Response> deleteInstructor(String instructorID) async {
-    final url = Uri.parse("${baseUrl}instructor/deleteInstructor/$instructorID");
+    final url = Uri.parse(
+      "${baseUrl}instructor/deleteInstructor/$instructorID",
+    );
     return await http.delete(url);
   }
 
@@ -62,7 +73,9 @@ class Api {
 
   //get a course type by its ID
   static Future<http.Response> getCourseTypeById(String courseTypeId) async {
-    final url = Uri.parse("${baseUrl}coursetype/getCourseTypeById/$courseTypeId");
+    final url = Uri.parse(
+      "${baseUrl}coursetype/getCourseTypeById/$courseTypeId",
+    );
     return await http.get(url);
   }
 
@@ -73,7 +86,10 @@ class Api {
   }
 
   // update course
-  static Future<http.Response> updateCourse(String courseId, Map<String, dynamic> cdata) async {
+  static Future<http.Response> updateCourse(
+    String courseId,
+    Map<String, dynamic> cdata,
+  ) async {
     final url = Uri.parse("${baseUrl}course/updateCourse/$courseId");
     return await http.put(
       url,
@@ -90,8 +106,12 @@ class Api {
 
   //Course Detail API
   //get a course detail by instructor ID
-  static Future<http.Response> getCourseDetailByInstructor(String instructorId) async {
-    final url = Uri.parse("${baseUrl}coursedetail/getCourseDetailByInstructor/$instructorId");
+  static Future<http.Response> getCourseDetailByInstructor(
+    String instructorId,
+  ) async {
+    final url = Uri.parse(
+      "${baseUrl}coursedetail/getCourseDetailByInstructor/$instructorId",
+    );
     return await http.get(url);
   }
 
@@ -102,7 +122,10 @@ class Api {
   }
 
   //update course detail
-  static Future<http.Response> updateCourseDetail(int scheduleId, Map<String, dynamic> cdata) async {
+  static Future<http.Response> updateCourseDetail(
+    int scheduleId,
+    Map<String, dynamic> cdata,
+  ) async {
     final url = Uri.parse("${baseUrl}coursedetail/updateSchedule/$scheduleId");
     return await http.put(
       url,
@@ -110,7 +133,7 @@ class Api {
       body: jsonEncode(cdata),
     );
   }
-  
+
   //get course pictures by course ID
   static Future<http.Response> getCoursePictureById(String courseId) async {
     final url = Uri.parse("${baseUrl}course/getCoursePictureById/$courseId");
@@ -118,7 +141,9 @@ class Api {
   }
 
   // create schedule
-  static Future<http.Response> createSchedule(Map<String, dynamic> sdata) async {
+  static Future<http.Response> createSchedule(
+    Map<String, dynamic> sdata,
+  ) async {
     final url = Uri.parse("${baseUrl}coursedetail/createSchedule");
     return await http.post(
       url,
@@ -126,9 +151,12 @@ class Api {
       body: jsonEncode(sdata),
     );
   }
-  // get course detail 
+
+  // get course detail
   static Future<http.Response> getCourseDetails(String courseId) async {
-    final url = Uri.parse("${baseUrl}coursedetail/getCourseDetailById/$courseId");
+    final url = Uri.parse(
+      "${baseUrl}coursedetail/getCourseDetailById/$courseId",
+    );
     return await http.get(url);
   }
 
@@ -141,34 +169,65 @@ class Api {
   //Registration
   //Count Registration
   static Future<http.Response> countRegistration(int scheduleId) async {
-    final url = Uri.parse("${baseUrl}registration/countRegistration/$scheduleId");
+    final url = Uri.parse(
+      "${baseUrl}registration/countRegistration/$scheduleId",
+    );
     return await http.get(url);
   }
 
   //List Registration by Schedule
   static Future<http.Response> listRegistBySchedule(int scheduleId) async {
-    final url = Uri.parse("${baseUrl}registration/listRegistBySchedule/$scheduleId");
+    final url = Uri.parse(
+      "${baseUrl}registration/listRegistBySchedule/$scheduleId",
+    );
     return await http.get(url);
   }
 
-  static Future<http.Response> deleteRegistration(int registId) async {
-  final url = Uri.parse("${baseUrl}registration/deleteRegistration/$registId");
-  return await http.delete(url);
-}
-
-  static Future<http.Response> completeStudy(int scheduleId) async {
-  final url = Uri.parse("${baseUrl}registration/completeStudy/$scheduleId");
-  return await http.put(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'registStatus': 'Completed',
-    }),
-  );
+  static Future<http.Response> getStudentByRegist(int registId) async {
+    final url = Uri.parse(
+      "${baseUrl}student/getStudentByRegistId/$registId",
+    );
+    return await http.get(url);
   }
-  
+
+
+  static Future<http.Response> deleteRegistration(int registId) async {
+    final url = Uri.parse(
+      "${baseUrl}registration/deleteRegistration/$registId",
+    );
+    return await http.delete(url);
+  }
+
+  static Future<http.Response> completeStudy(
+    int scheduleId,
+    String stuId,
+  ) async {
+    final url = Uri.parse(
+      "${baseUrl}registration/completeStudy/$scheduleId/$stuId",
+    );
+    return await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({}),
+    );
+  }
+
+  static Future<http.Response> startStudy(int scheduleId, String stuId) async {
+    final url = Uri.parse(
+      "${baseUrl}registration/startStudy/$scheduleId/$stuId",
+    );
+    return await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({}),
+    );
+  }
+
   // open and close schedule
-  static Future<http.Response> openAndCloseSchedule(int scheduleId, Map<String, dynamic> status) async {
+  static Future<http.Response> openAndCloseSchedule(
+    int scheduleId,
+    Map<String, dynamic> status,
+  ) async {
     final url = Uri.parse("${baseUrl}coursedetail/OpenAndClose/$scheduleId");
     return await http.put(
       url,
@@ -177,7 +236,7 @@ class Api {
     );
   }
 
-   // fetching a student by their ID.
+  // fetching a student by their ID.
   static Future<http.Response> getStudentById(String stuId) async {
     final url = Uri.parse("${baseUrl}student/getStudentById/$stuId");
     return await http.get(url);
@@ -198,19 +257,23 @@ class Api {
     for (int i = 0; i < pickedImageFiles.length; i++) {
       final file = pickedImageFiles[i];
       if (kIsWeb) {
-        request.files.add(http.MultipartFile.fromBytes(
-          'imageUrl',
-          pickedImageBytesList[i],
-          filename: file.name,
-          contentType: MediaType('image', file.name.split('.').last),
-        ));
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'imageUrl',
+            pickedImageBytesList[i],
+            filename: file.name,
+            contentType: MediaType('image', file.name.split('.').last),
+          ),
+        );
       } else {
-        request.files.add(await http.MultipartFile.fromPath(
-          'imageUrl',
-          file.path,
-          filename: file.name,
-          contentType: MediaType('image', file.name.split('.').last),
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'imageUrl',
+            file.path,
+            filename: file.name,
+            contentType: MediaType('image', file.name.split('.').last),
+          ),
+        );
       }
     }
 
@@ -233,7 +296,9 @@ class Api {
 
   //Notification API
   // Add new notification
-  static Future<http.Response> addNotification(Map<String, dynamic> data) async {
+  static Future<http.Response> addNotification(
+    Map<String, dynamic> data,
+  ) async {
     final url = Uri.parse("${baseUrl}notification/addNotification");
     return await http.post(
       url,
@@ -248,4 +313,50 @@ class Api {
     return await http.get(url);
   }
 
+  //Admin API
+  static Future<http.Response> listAdmin() async {
+    final url = Uri.parse("${baseUrl}listAdmin");
+    return await http.get(url);
+  }
+
+  static Future<http.Response> getAdmin(String id) async {
+    final url = Uri.parse("${baseUrl}getAdmin/$id");
+    return await http.get(url);
+  }
+
+  static Future<http.Response> getAdminByEmail(String email) async {
+    final url = Uri.parse("${baseUrl}getAdminByEmail/$email");
+    return await http.get(url);
+  }
+
+  static Future<http.Response> listAllSchools() async {
+    final url = Uri.parse('${baseUrl}listAllSchool');
+    final response = await http.get(url);
+    return response;
+  }
+
+  static Future<http.Response> listSchoolsByStatus(String status) async {
+    final url = Uri.parse('${baseUrl}listSchoolByStatus/$status');
+    final response = await http.get(url);
+    return response;
+  }
+
+  static Future<http.Response> getSchoolStatus(String schoolId) async {
+    final url = Uri.parse('${baseUrl}school/getSchoolStatus/$schoolId');
+    final response = await http.get(url);
+    return response;
+  }
+
+  static Future<http.Response> updateSchoolStatus(
+    String schoolId,
+    String newStatus,
+  ) async {
+    final url = Uri.parse('${baseUrl}updateSchoolStatus/$schoolId');
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'schoolStatus': newStatus}),
+    );
+    return response;
+  }
 }

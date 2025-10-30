@@ -73,7 +73,6 @@ class CourseController {
     required List<Uint8List> imageBytesList,
     required List<CourseDetail> courseSchedules,
   }) async {
-    // Step 1: Create Course
     var courseRequest = http.MultipartRequest(
       'POST',
       Uri.parse('http://localhost:3000/course/createCourse'),
@@ -93,7 +92,6 @@ class CourseController {
       throw Exception('Failed to create course: $courseResponseBody');
     }
 
-    // Step 2: Upload Images
     var imageRequest = http.MultipartRequest(
       'POST',
       Uri.parse('http://localhost:3000/course/uploadImage'),
@@ -124,40 +122,40 @@ class CourseController {
       throw Exception('Failed to upload images: $imageResponseBody');
     }
 
-    // Step 3: Create Schedules
-    bool allSchedulesAdded = true;
-    for (var schedule in courseSchedules) {
-      var scheduleBody = {
-        'scheduleId': schedule.id == 0 ? null : schedule.id,
-        'capacity': schedule.capacity,
-        'endDate': schedule.endDate,
-        'registClose': schedule.registClose,
-        'registOpen': schedule.registOpen,
-        'scheduleStatus': 'open',
-        'startDate': schedule.startDate,
-        'studyTime': schedule.time,
-        'courseId': courseId,
-        'instructorId': schedule.instructorId,
-      };
+    if (courseSchedules.isNotEmpty) {
+      bool allSchedulesAdded = true;
+      for (var schedule in courseSchedules) {
+        var scheduleBody = {
+          'scheduleId': schedule.id == 0 ? null : schedule.id,
+          'capacity': schedule.capacity,
+          'endDate': schedule.endDate,
+          'registClose': schedule.registClose,
+          'registOpen': schedule.registOpen,
+          'scheduleStatus': 'open',
+          'startDate': schedule.startDate,
+          'studyTime': schedule.time,
+          'courseId': courseId,
+          'instructorId': schedule.instructorId,
+        };
 
-      final scheduleResponse = await http.post(
-        Uri.parse('http://localhost:3000/coursedetail/createSchedule'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(scheduleBody),
-      );
-      if (scheduleResponse.statusCode != 201) {
-        allSchedulesAdded = false;
-        print('Failed to add schedule: ${scheduleResponse.body}');
-        break;
+        final scheduleResponse = await http.post(
+          Uri.parse('http://localhost:3000/coursedetail/createSchedule'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(scheduleBody),
+        );
+        if (scheduleResponse.statusCode != 201) {
+          allSchedulesAdded = false;
+          print('Failed to add schedule: ${scheduleResponse.body}');
+          break;
+        }
       }
-    }
-    if (!allSchedulesAdded) {
-      throw Exception('Failed to add all schedules.');
+      if (!allSchedulesAdded) {
+        throw Exception('Failed to add all schedules.');
+      }
     }
     
     return true;
   }
-  // Get Course By Id
   static Future<Course> fetchCourseById(String courseId) async {
     try {
       final response = await Api.getCourseById(courseId);
@@ -220,7 +218,6 @@ class CourseController {
     }
   }
 
-  //fetch course type name
   static Future<String> fetchCourseTypeName(int courseTypeId) async {
     try {
       final response = await Api.getCourseTypeById(courseTypeId.toString());
@@ -234,7 +231,6 @@ class CourseController {
     return 'Unknown';
   }
 
-  // fetch a random course image
   static Future<String?> fetchCourseRandomImage(String? courseId) async {
     if (courseId == null) return null;
     try {
@@ -252,7 +248,7 @@ class CourseController {
     }
     return null;
   }
-  //fetch a course image
+
   static Future<List<String>> fetchCourseImages(String courseId) async {
     try {
       final response = await Api.getCoursePictureById(courseId);
@@ -268,7 +264,6 @@ class CourseController {
     return [];
   }
 
-  //Course Detail
   static Future<List<CourseDetail>> fetchCourseDetails(String courseId) async {
     try {
       final response = await Api.getCourseDetails(courseId);
@@ -281,6 +276,7 @@ class CourseController {
     }
     return [];
   }
+  
   //fetch a Instructors
   static Future<List<Instructor>> fetchInstructors(String schoolID) async {
     try {
@@ -445,6 +441,34 @@ class CourseController {
     final response = await Api.deleteCourseImage(imageUrl);
     if (response.statusCode != 200) {
       throw Exception('Failed to delete image: ${response.body}');
+    }
+  }
+
+  // function get instructor schedule
+  static Future<List<CourseDetail>> fetchCourseDetailsByInstructorId(String instructorId) async {
+    try {
+      final response = await Api.getCourseDetailByInstructor(instructorId);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => CourseDetail.fromJson(item)).toList();
+      } else if (response.statusCode == 404) {
+        return [];
+      } else {
+        throw Exception('Failed to load instructor schedules: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching instructor schedules: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> canDeleteInstructor(String instructorId) async {
+    try {
+      final schedules = await fetchCourseDetailsByInstructorId(instructorId);
+      return schedules.isEmpty; 
+    } catch (e) {
+      print('Error checking instructor schedule: $e');
+      return false; 
     }
   }
 

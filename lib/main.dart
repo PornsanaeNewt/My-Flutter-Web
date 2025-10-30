@@ -7,7 +7,9 @@ import 'package:project_web/styles/app-color.dart';
 import 'package:project_web/styles/text-style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_page.dart';
-import 'package:project_web/styles/font-style.dart'; 
+import 'package:project_web/styles/font-style.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 
 void main() {
   runApp(const MainApp());
@@ -42,6 +44,17 @@ class _MainAppState extends State<MainApp> {
       theme: ThemeData(
         fontFamily: FontStyles.primaryFont,
       ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('th', 'TH'), 
+      ],
+      locale: const Locale('th', 'TH'), 
+      
       home: const LandingPage(),
     );
   }
@@ -223,7 +236,6 @@ class _LandingPageState extends State<LandingPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Correct usage of defined FontSizes for the title in the AppBar
     final appBarTitleStyle = TextStyles.title.copyWith(
       color: AppColors.primaryButton,
       fontSize: FontStyles.title, 
@@ -248,7 +260,6 @@ class _LandingPageState extends State<LandingPage> {
               child: const Icon(Icons.restaurant, color: Colors.white),
             ),
             const SizedBox(width: 12),
-            // Use the refined style
             Text(
               'Thai Cooking Course',
               style: appBarTitleStyle,

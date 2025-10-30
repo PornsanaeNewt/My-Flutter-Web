@@ -17,7 +17,6 @@ class EditSchoolWidget extends StatelessWidget {
   final TextEditingController schoolEmailController;
   final TextEditingController schoolLatitudeController;
   final TextEditingController schoolLongitudeController;
-  final TextEditingController schoolPasswordController;
   final bool isLoading;
   final String? currentSchoolPictureFileName;
   final XFile? pickedImage;
@@ -26,9 +25,7 @@ class EditSchoolWidget extends StatelessWidget {
   final VoidCallback onClearPicture;
   final VoidCallback onUpdateSchool;
   final VoidCallback onCancel;
-  // เพิ่มสำหรับรหัสผ่าน
-  final bool obscurePassword;
-  final VoidCallback togglePasswordVisibility;
+  final VoidCallback onOpenMap;
 
   const EditSchoolWidget({
     super.key,
@@ -40,7 +37,6 @@ class EditSchoolWidget extends StatelessWidget {
     required this.schoolEmailController,
     required this.schoolLatitudeController,
     required this.schoolLongitudeController,
-    required this.schoolPasswordController,
     required this.isLoading,
     required this.currentSchoolPictureFileName,
     required this.pickedImage,
@@ -49,12 +45,9 @@ class EditSchoolWidget extends StatelessWidget {
     required this.onClearPicture,
     required this.onUpdateSchool,
     required this.onCancel,
-    // เพิ่มการรับค่าใหม่
-    required this.obscurePassword,
-    required this.togglePasswordVisibility,
+    required this.onOpenMap,
   });
 
-  // สร้างส่วนหัวข้อพร้อมเส้นแบ่ง
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -75,7 +68,6 @@ class EditSchoolWidget extends StatelessWidget {
     );
   }
 
-  // ส่วนจัดการรูปภาพ
   Widget _buildPictureInput() {
     Widget imageWidget;
     String imageUrl = currentSchoolPictureFileName != null && currentSchoolPictureFileName!.isNotEmpty
@@ -123,7 +115,6 @@ class EditSchoolWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ปุ่มเลือกรูปภาพ
             OutlinedButton.icon(
               onPressed: onPickImage,
               icon: const Icon(Icons.photo_library, color: AppColors.buttonText, size: 20),
@@ -138,7 +129,6 @@ class EditSchoolWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // ปุ่มล้างรูปภาพ
             TextButton.icon(
               onPressed: currentSchoolPictureFileName != null || pickedImage != null ? onClearPicture : null,
               icon: const Icon(Icons.clear, color: AppColors.errorColor, size: 20),
@@ -161,7 +151,6 @@ class EditSchoolWidget extends StatelessWidget {
     );
   }
 
-  // ปรับปรุง TextField ให้รองรับ validator และปุ่มสลับรหัสผ่าน
   Widget _buildTextField(
     TextEditingController controller, 
     String label,
@@ -171,8 +160,7 @@ class EditSchoolWidget extends StatelessWidget {
       bool obscure = false, 
       int maxLines = 1, 
       List<TextInputFormatter>? inputFormatters,
-      // เพิ่มพารามิเตอร์สำหรับปุ่มสลับรหัสผ่าน
-      VoidCallback? onSuffixIconPressed, 
+      Widget? suffixWidget, 
     }
   ) {
     return Padding(
@@ -192,17 +180,7 @@ class EditSchoolWidget extends StatelessWidget {
             decoration: InputDecoration(
               filled: true,
               fillColor: AppColors.cardBackground,
-              // เพิ่ม suffixIcon สำหรับรหัสผ่าน
-              suffixIcon: onSuffixIconPressed != null
-                ? IconButton(
-                    icon: Icon(
-                      // ใช้ obscure เพื่อกำหนดไอคอน
-                      obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                      color: AppColors.secondaryText,
-                    ),
-                    onPressed: onSuffixIconPressed,
-                  )
-                : null,
+              suffixIcon: suffixWidget,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: AppColors.inputBorder),
@@ -258,21 +236,17 @@ class EditSchoolWidget extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. ส่วนรูปภาพ
                   _buildSectionHeader('รูปภาพโรงเรียน'),
                   Center(child: _buildPictureInput()),
                   const SizedBox(height: 24),
                   
-                  // 2. ข้อมูลหลัก
                   _buildSectionHeader('ข้อมูลทั่วไป'),
-                  // Validation: ชื่อโรงเรียน (ห้ามว่าง)
                   _buildTextField(
                     schoolNameController, 
                     'ชื่อโรงเรียน', 
                     customValidator: (value) =>
                         value == null || value.isEmpty ? 'กรุณากรอก ชื่อโรงเรียน' : null,
                   ),
-                  // Validation: เบอร์โทร (ตัวเลข 10 หลัก)
                   _buildTextField(
                     schoolTelController, 
                     'เบอร์โทร', 
@@ -291,9 +265,7 @@ class EditSchoolWidget extends StatelessWidget {
                   _buildTextField(schoolAddressController, 'ที่อยู่', maxLines: 3),
                   _buildTextField(schoolDetailController, 'รายละเอียด', maxLines: 5),
                   
-                  // 3. ข้อมูลติดต่อ
                   _buildSectionHeader('ข้อมูลการติดต่อและบัญชี'),
-                  // Validation: อีเมล (ต้องเป็นรูปแบบอีเมลที่ถูกต้อง)
                   _buildTextField(
                     schoolEmailController, 
                     'อีเมล', 
@@ -307,12 +279,11 @@ class EditSchoolWidget extends StatelessWidget {
                     },
                   ),
                   
-                  // 4. ข้อมูลพิกัด
-                  const SizedBox(height: 4),
+                  _buildSectionHeader('พิกัดโรงเรียน'),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        // Validation: ละติจูด (รูปแบบตัวเลข)
                         child: _buildTextField(
                           schoolLatitudeController, 
                           'ละติจูด (Latitude)', 
@@ -327,7 +298,6 @@ class EditSchoolWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        // Validation: ลองจิจูด (รูปแบบตัวเลข)
                         child: _buildTextField(
                           schoolLongitudeController, 
                           'ลองจิจูด (Longitude)', 
@@ -342,23 +312,24 @@ class EditSchoolWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // Validation: รหัสผ่าน (ถ้ามีการกรอก ต้องมีอย่างน้อย 6 ตัวอักษร)
-                  _buildTextField(
-                    schoolPasswordController, 
-                    'รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)', 
-                    obscure: obscurePassword, // ส่งสถานะ Obscure
-                    onSuffixIconPressed: togglePasswordVisibility, // ส่ง Callback สลับสถานะ
-                    customValidator: (value) {
-                      if (value != null && value.isNotEmpty && value.length < 6) {
-                        return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
-                      }
-                      return null;
-                    },
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 20.0),
+                    child: ElevatedButton.icon(
+                      onPressed: onOpenMap,
+                      icon: const Icon(Icons.map_outlined, color: AppColors.buttonText),
+                      label: Text('เปิดแผนที่เพื่อเลือกพิกัด', style: TextStyles.button.copyWith(color: AppColors.buttonText)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.linkText,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 2,
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 40),
 
-                  // ปุ่มดำเนินการ
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -384,7 +355,6 @@ class EditSchoolWidget extends StatelessWidget {
                         child: SizedBox(
                           height: 50,
                           child: ElevatedButton(
-                            // เมื่อกดปุ่ม ให้เรียก validate ก่อน
                             onPressed: isLoading ? null : () {
                               if (formKey.currentState!.validate()) {
                                 onUpdateSchool();

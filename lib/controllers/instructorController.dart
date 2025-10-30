@@ -40,7 +40,6 @@ class InstructorController {
     return prefs.getString('schoolID');
   }
 
-  // delete instructor
   static Future<void> deleteInstructor(String instructorID) async {
     try {
       final response = await Api.deleteInstructor(instructorID);

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:project_web/controllers/notificationController.dart';
-import 'package:project_web/model/Notifications.dart';
 import 'package:project_web/styles/app-color.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -111,14 +110,22 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    
+    final selectedStudentsData = _filteredRegistrations
+        .where((student) {
+          final registId = student['registId'].toString();
+          return _selectedStudents[registId] == true;
+        })
+        .map((student) {
+          return {
+            'registId': student['registId'] as int,
+            'stuId': student['stuId'] as String,
+          };
+        })
+        .toList();
 
-    final selectedRegistIds =
-        _selectedStudents.entries
-            .where((entry) => entry.value)
-            .map((entry) => int.parse(entry.key))
-            .toList();
 
-    if (selectedRegistIds.isEmpty) {
+    if (selectedStudentsData.isEmpty) { 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('กรุณาเลือกผู้เรียนอย่างน้อยหนึ่งคน', style: TextStyles.body.copyWith(color: Colors.white)),
@@ -131,16 +138,19 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     final notiDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()); 
 
     try {
-      for (final registId in selectedRegistIds) {
-        final newNotification = Notifications(
-          notiId: 0,
-          notiDate: notiDate,
-          notiDetails: _detailController.text,
-          notiType: _typeController.text,
-          notiStatus: "unread",
-          registId: registId,
-        );
-        await NotificationController.addNotification(newNotification);
+      for (final studentData in selectedStudentsData) {
+        
+        final Map<String, dynamic> notificationData = {
+          'notiId': 0, 
+          'notiDate': notiDate,
+          'notiDetails': _detailController.text,
+          'notiType': _typeController.text,
+          'notiStatus': "unread",
+          'registId': studentData['registId'] as int,
+          'stuId': studentData['stuId'] as String,
+        };
+
+        await NotificationController.addNotification(notificationData); 
       }
 
       ScaffoldMessenger.of(
@@ -224,9 +234,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
+          constraints: const BoxConstraints(maxWidth: 1400),
           child: Padding(
-            padding: const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -234,7 +244,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                   'Couurse / Course Detail / Reigstrations / Send Notification',
                   style: TextStyles.body.copyWith(fontSize: 12, color: AppColors.secondaryText),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 
                 Expanded(
                   child: Row(
@@ -256,7 +266,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('รายละเอียดการแจ้งเตือน', style: TextStyles.title.copyWith(fontSize: 22)),
-                                  const Divider(height: 8, color: AppColors.inputBorder),
+                                  const Divider(height: 2, color: AppColors.inputBorder),
                                   
                                   Row(
                                     children: [
@@ -292,7 +302,8 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                   _buildTextField( 
                                     controller: _detailController,
                                     label: 'รายละเอียดการแจ้งเตือน',
-                                    maxLines: 8, // แก้ไขขนาดให้เหมาะสม
+                                    // ลด maxLines จาก 8 เป็น 6 เพื่อลดความสูง
+                                    maxLines: 6, 
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'กรุณากรอกรายละเอียดการแจ้งเตือน';
@@ -368,7 +379,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                                         itemBuilder: (context, index) {
                                           final student = _filteredRegistrations[index];
                                           final registId = student['registId'].toString();
-                                          final fullName = '${student['stuName']} ${student['stuLname']}';
+                                          final fullName = '${student['stuName']} ${student['stuLname']} ${student['stuId']}';
 
                                           final status = student['registStatus'] ?? 'N/A';
                                           final statusColor = _getStatusColor(status);

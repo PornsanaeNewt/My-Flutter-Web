@@ -385,7 +385,7 @@ class CreateCourseWidget extends StatelessWidget {
         ElevatedButton.icon(
           onPressed: onAddSchedule,
           icon: const Icon(Icons.add_box, color: AppColors.buttonText),
-          label: const Text('เพิ่มกำหนดการใหม่'),
+          label: const Text('สร้างกำหนดการลงทะเบียนใหม'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryButton,
             foregroundColor: AppColors.buttonText,

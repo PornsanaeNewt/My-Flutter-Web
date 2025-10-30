@@ -161,4 +161,18 @@ class SchoolController {
       throw Exception('อัปเดตไม่สำเร็จ: ${response.statusCode} - $responseBody');
     }
   }
+
+  static Future<void> deleteSchool(String schoolId) async {
+    try {
+      final response = await Api.deleteSchool(schoolId); 
+
+      if (response.statusCode == 200) {
+        print('School $schoolId deleted successfully.');
+      } else {
+        throw Exception('Failed to delete school: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error deleting school: $e');
+    }
+  }
 }

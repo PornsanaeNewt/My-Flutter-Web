@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project_web/controllers/schoolController.dart'; 
-import 'package:project_web/model/School.dart'; 
+import 'package:project_web/model/School.dart';
+import 'package:project_web/services/map_api.dart'; 
 import 'package:project_web/styles/text-style.dart'; 
 import 'package:project_web/widgets/edit_school_widget.dart';
 
@@ -26,14 +27,12 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
   final schoolEmailController = TextEditingController();
   final schoolLatitudeController = TextEditingController();
   final schoolLongitudeController = TextEditingController();
-  final schoolPasswordController = TextEditingController();
 
   bool _isLoading = false;
   String? _currentSchoolPictureFileName;
   XFile? _pickedImage;
   Uint8List? _pickedImageBytes;
   bool _clearPictureFlag = false; 
-  bool _obscurePassword = true; 
 
   @override
   void initState() {
@@ -50,7 +49,6 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
     schoolEmailController.dispose();
     schoolLatitudeController.dispose();
     schoolLongitudeController.dispose();
-    schoolPasswordController.dispose();
     super.dispose();
   }
 
@@ -62,14 +60,7 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
     schoolEmailController.text = widget.school.schoolEmail ?? '';
     schoolLatitudeController.text = widget.school.schoolLatitude?.toString() ?? ''; 
     schoolLongitudeController.text = widget.school.schoolLongitude?.toString() ?? '';
-    schoolPasswordController.text = ''; 
     _currentSchoolPictureFileName = widget.school.schoolPicture; 
-  }
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
   }
 
   Future<void> _pickImage() async {
@@ -107,6 +98,31 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
     _showSnackBar('รูปภาพถูกล้างแล้ว', Colors.orange);
   }
 
+  Future<void> _openMapAndSelectLocation() async {
+    final double? initialLat = double.tryParse(schoolLatitudeController.text);
+    final double? initialLng = double.tryParse(schoolLongitudeController.text);
+
+    if (!mounted) return;
+    
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapAPI(
+          initialLat: initialLat,
+          initialLng: initialLng,
+          onLocationSelected: (point) {
+            if (!mounted) return;
+            setState(() {
+              schoolLatitudeController.text = point.latitude.toString();
+              schoolLongitudeController.text = point.longitude.toString();
+            });
+            _showSnackBar('อัปเดตพิกัดเรียบร้อย', Colors.black);
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _updateSchool() async {
     if (!_formKey.currentState!.validate()) { 
       _showSnackBar('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', Colors.red);
@@ -121,7 +137,7 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
         schoolId: widget.school.schoolId!,
         schoolName: schoolNameController.text,
         schoolEmail: schoolEmailController.text,
-        schoolPassword: schoolPasswordController.text, 
+        schoolPassword: widget.school.schoolPassword!,
         schoolDetail: schoolDetailController.text,
         schoolAddress: schoolAddressController.text,
         schoolTel: schoolTelController.text,
@@ -133,7 +149,7 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
         clearPictureFlag: _clearPictureFlag,
       );
 
-      _showSnackBar('อัปเดตข้อมูลสำเร็จ', Colors.green);
+      _showSnackBar('อัปเดตข้อมูลสำเร็จ', Colors.black);
       if (mounted) {
         Navigator.pop(context, true); 
       }
@@ -177,7 +193,6 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
               schoolEmailController: schoolEmailController,
               schoolLatitudeController: schoolLatitudeController,
               schoolLongitudeController: schoolLongitudeController,
-              schoolPasswordController: schoolPasswordController,
               isLoading: _isLoading,
               currentSchoolPictureFileName: _currentSchoolPictureFileName,
               pickedImage: _pickedImage,
@@ -188,8 +203,7 @@ class _EditSchoolPageState extends State<EditSchoolPage> {
               onCancel: () {
                 Navigator.pop(context);
               },
-              obscurePassword: _obscurePassword, 
-              togglePasswordVisibility: _togglePasswordVisibility,
+              onOpenMap: _openMapAndSelectLocation, 
             ),
           ),
         ),

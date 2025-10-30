@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:project_web/services/api.dart';
 
-class ReviewService {
+class ReviewController {
   Future<List<dynamic>> fetchReviewsByCourse(String courseId) async {
     try {
       final response = await Api.listReviewsByCourse(courseId);

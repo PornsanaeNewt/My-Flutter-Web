@@ -17,18 +17,10 @@ class LoginController {
         print('Login Data: ${data}');
 
         if (data.isEmpty) {
-          print('I SUS');
           return null; 
         }
         
         final school = School.fromJson(data[0]);
-
-        print('Login Data 0 : ${data[0]}');
-        print('Login Email: ${school.schoolEmail}');
-        print('Login Password: ${school.schoolPassword}');
-        print('Login School ID : ${school.schoolId}');
-        print('Login School Status: ${school.schoolStatus}');
-        
 
         if (school.schoolPassword == password) {
           

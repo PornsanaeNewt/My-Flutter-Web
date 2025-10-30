@@ -6,6 +6,7 @@ import 'package:project_web/screens/edit_instructor_page.dart';
 import 'package:project_web/controllers/instructorController.dart';
 import 'package:project_web/widgets/list_instructor_widget.dart';
 import 'package:project_web/styles/text-style.dart'; 
+import 'package:project_web/controllers/courseController.dart';
 
 class ListInstructorPage extends StatefulWidget {
   const ListInstructorPage({super.key});
@@ -180,6 +181,7 @@ class _ListInstructorPageState extends State<ListInstructorPage> {
             onAddInstructor: _onAddInstructor,
             onDeleteInstructor: _deleteInstructor,
             onEditInstructor: _onEditInstructor,
+            canDeleteInstructor: CourseController.canDeleteInstructor,
           ),
         ),
       ),

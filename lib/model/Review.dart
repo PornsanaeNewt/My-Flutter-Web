@@ -3,14 +3,14 @@ class Review {
   final double reviewPoint; 
   final String reviews;
   final int registId;
-  final String courseId;
+  final int scheduleId;
 
   Review({
     required this.reviewDate,
     required this.reviewPoint,
     required this.reviews,
     required this.registId,
-    required this.courseId,
+    required this.scheduleId,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
@@ -19,7 +19,7 @@ class Review {
       reviewPoint: (json['reviewPoint'] as num).toDouble(), 
       reviews: json['reviews'] as String,
       registId: json['registId'] as int,
-      courseId: json['courseId'] as String,
+      scheduleId: json['scheduleId'] as int,
     );
   }
 
@@ -29,7 +29,7 @@ class Review {
       'reviewPoint': reviewPoint,
       'reviews': reviews,
       'registId': registId,
-      'courseId': courseId,
+      'scheduleId': scheduleId,
     };
   }
 }

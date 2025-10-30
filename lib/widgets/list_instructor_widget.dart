@@ -14,6 +14,7 @@ class ListInstructorWidget extends StatelessWidget {
   final VoidCallback onAddInstructor;
   final Function(Map<String, dynamic>) onDeleteInstructor;
   final Function(String) onEditInstructor;
+  final Future<bool> Function(String) canDeleteInstructor;
 
   const ListInstructorWidget({
     super.key,
@@ -27,6 +28,7 @@ class ListInstructorWidget extends StatelessWidget {
     required this.onAddInstructor,
     required this.onDeleteInstructor,
     required this.onEditInstructor,
+    required this.canDeleteInstructor,
   });
 
   List<dynamic> _getCurrentPageItems() {
@@ -99,7 +101,7 @@ class ListInstructorWidget extends StatelessWidget {
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.inputBorder)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.inputFocusedBorder, width: 2)),
         filled: true,
-        fillColor: AppColors.formBackground, // ใช้สีพื้นหลังฟอร์มที่สะอาดตา
+        fillColor: AppColors.formBackground, 
         contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       ),
     );
@@ -121,11 +123,10 @@ class ListInstructorWidget extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Table Header (ส่วนหัวตาราง)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
             decoration: BoxDecoration(
-              color: AppColors.warmGray, // ใช้สี Warm Gray ให้เด่นขึ้น
+              color: AppColors.warmGray,
               border: Border(bottom: BorderSide(color: AppColors.inputBorder, width: 2)),
             ),
             child: Row(
@@ -139,7 +140,6 @@ class ListInstructorWidget extends StatelessWidget {
             ),
           ),
           
-          // Table Body
           Expanded(
             child: ListView.separated(
               shrinkWrap: true,
@@ -160,7 +160,6 @@ class ListInstructorWidget extends StatelessWidget {
     );
   }
   
-  // Widget ช่วยสร้าง Header Cell
   Widget _buildHeaderCell(String text, {int? flex, double? width, Alignment alignment = Alignment.centerLeft}) {
     final content = Align(
       alignment: alignment,
@@ -168,7 +167,7 @@ class ListInstructorWidget extends StatelessWidget {
         text,
         style: TextStyles.label.copyWith(
           fontWeight: FontStyles.bold,
-          color: AppColors.primaryBlack, // ใช้สีดำที่เข้มขึ้น
+          color: AppColors.primaryBlack,
           fontSize: 15,
         ),
       ),
@@ -182,7 +181,6 @@ class ListInstructorWidget extends StatelessWidget {
     return content;
   }
   
-  // Widget สร้าง Row ข้อมูลผู้สอน
   Widget _buildInstructorRow(BuildContext context, Map<String, dynamic> instructor) {
     final instructorPicture = instructor['instructorPicture'];
     final imageUrl = instructorPicture != null && instructorPicture.isNotEmpty
@@ -192,13 +190,12 @@ class ListInstructorWidget extends StatelessWidget {
     return Material(
       color: AppColors.formBackground,
       child: InkWell(
-        onTap: () => onEditInstructor(instructor['instructorId']), // สามารถแตะที่แถวเพื่อแก้ไข
-        hoverColor: AppColors.lightAccent.withOpacity(0.5), // เพิ่มลูกเล่น hover
+        onTap: () => onEditInstructor(instructor['instructorId']), 
+        hoverColor: AppColors.lightAccent.withOpacity(0.5),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
           child: Row(
             children: [
-              // รูปภาพ (Circle Avatar)
               SizedBox(
                 width: 80,
                 child: Padding(
@@ -223,7 +220,6 @@ class ListInstructorWidget extends StatelessWidget {
                 ),
               ),
               
-              // ชื่อ
               Expanded(
                 flex: 2,
                 child: Text(
@@ -234,7 +230,6 @@ class ListInstructorWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              // อีเมล
               Expanded(
                 flex: 3,
                 child: Text(
@@ -244,7 +239,6 @@ class ListInstructorWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              // เบอร์โทร
               Expanded(
                 flex: 2,
                 child: Text(
@@ -254,13 +248,11 @@ class ListInstructorWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              // จัดการ (Actions)
               Expanded(
                 flex: 1,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // ปุ่ม Edit
                     _buildActionButton(
                       icon: Icons.edit_outlined,
                       color: AppColors.darkAccent,
@@ -268,12 +260,55 @@ class ListInstructorWidget extends StatelessWidget {
                       tooltip: 'แก้ไข',
                     ),
                     const SizedBox(width: 8),
-                    // ปุ่ม Delete
-                    _buildActionButton(
-                      icon: Icons.delete_outline,
-                      color: Colors.red.shade700,
-                      onTap: () => onDeleteInstructor(instructor),
-                      tooltip: 'ลบ',
+                    FutureBuilder<bool>(
+                      future: canDeleteInstructor(instructor['instructorId']),
+                      builder: (context, snapshot) {
+                        final canDelete = snapshot.data ?? false; 
+                        
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        
+                        if (canDelete) {
+                          return _buildActionButton(
+                            icon: Icons.delete_outline,
+                            color: Colors.red.shade700,
+                            onTap: () => onDeleteInstructor(instructor),
+                            tooltip: 'ลบ',
+                          );
+                        } else {
+                          return Tooltip(
+                            message: 'ไม่สามารถลบผู้สอนได้ เนื่องจากมีกำหนดการสอนอยู่',
+                            child: Container(
+                              width: 36, 
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.subtleGray.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: AppColors.inputBorder),
+                              ),
+                              child: Icon(
+                                Icons.delete_outline,
+                                size: 18,
+                                color: AppColors.secondaryText.withOpacity(0.5), 
+                              ),
+                            ),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -284,8 +319,7 @@ class ListInstructorWidget extends StatelessWidget {
       ),
     );
   }
-  
-  // Widget ช่วยสร้างปุ่มจัดการ
+
   Widget _buildActionButton({required IconData icon, required Color color, required VoidCallback onTap, required String tooltip}) {
     return Container(
       width: 36,
@@ -310,7 +344,6 @@ class ListInstructorWidget extends StatelessWidget {
     );
   }
 
-  // ปรับปรุง Pagination ให้สอดคล้องกับสไตล์
   Widget _buildPagination() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:project_web/model/Notifications.dart';
 import 'package:project_web/services/api.dart';
 
 class NotificationController {
@@ -17,9 +16,9 @@ class NotificationController {
     }
   }
 
-  static Future<void> addNotification(Notifications notification) async {
+  static Future<void> addNotification(Map<String, dynamic> notificationData) async {
     try {
-      final response = await Api.addNotification(notification.toJson());
+      final response = await Api.addNotification(notificationData);
       if (response.statusCode != 201) {
         throw Exception('Failed to send notification: ${response.body}');
       }

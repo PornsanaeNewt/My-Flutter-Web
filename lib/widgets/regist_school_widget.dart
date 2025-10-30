@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:project_web/services/map_api.dart'; 
 import 'package:project_web/styles/app-color.dart';
 import 'package:project_web/styles/text-style.dart';
-import 'package:project_web/styles/font-style.dart'; 
+import 'package:project_web/styles/font-style.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart'; 
 
 class RegisterSchoolWidgets {
   
@@ -56,7 +58,7 @@ class RegisterSchoolWidgets {
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
-            hintText: hint ?? 'กรอก$label',
+            hintText: hint ?? 'ป้อน$label',
             hintStyle: TextStyles.body.copyWith(color: AppColors.secondaryText),
             filled: true,
             fillColor: AppColors.inputBackground, 
@@ -191,13 +193,34 @@ class RegisterSchoolWidgets {
     required bool obscureConfirmPassword,
     required VoidCallback togglePasswordVisibility,
     required VoidCallback toggleConfirmPasswordVisibility,
+    required BuildContext context,
+    required Function(String lat, String lng, String address) onMapLocationSelected,
   }) {
-    final getLocationButton = Container(
+    final openMapButton = Container(
       padding: const EdgeInsets.only(bottom: 20), 
       child: SizedBox(
         height: 54, 
         child: ElevatedButton(
-          onPressed: isLoadingLocation ? null : determineAndSetPositionCallback,
+          onPressed: isLoadingLocation 
+            ? null 
+            : () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapAPI(
+                      onLocationSelected: (GeoPoint point) {
+                        latitudeController.text = point.latitude.toStringAsFixed(6);
+                        longitudeController.text = point.longitude.toStringAsFixed(6);
+                        onMapLocationSelected(
+                          latitudeController.text,
+                          longitudeController.text,
+                          addressController.text, 
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.darkAccent, 
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -206,16 +229,10 @@ class RegisterSchoolWidgets {
             ),
             elevation: 3,
           ),
-          child: isLoadingLocation
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(AppColors.buttonText)),
-              )
-            : const Tooltip( 
-                message: 'ค้นหาตำแหน่งปัจจุบัน',
-                child: Icon(Icons.location_on, size: 24, color: AppColors.buttonText),
-              ),
+          child: const Tooltip( 
+            message: 'เปิดแผนที่เพื่อเลือกตำแหน่ง',
+            child: Icon(Icons.location_on, size: 24, color: AppColors.buttonText),
+          ),
         ),
       ),
     );
@@ -284,17 +301,17 @@ class RegisterSchoolWidgets {
             ),
             RegisterSchoolWidgets.buildTextField(
               controller: phoneController, 
-              label: 'เบอร์โทร', 
+              label: 'เบอร์โทรศัพท์', 
               keyboardType: TextInputType.phone,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(10),
               ],
               validator: (v) {
-                if (v!.isEmpty) return 'กรุณากรอกเบอร์โทร';
-                if (v.length != 10) return 'เบอร์โทรต้องมี 10 ตัวเลข';
+                if (v!.isEmpty) return 'กรุณากรอกเบอร์โทรศัพท์';
+                if (v.length != 10) return 'เบอร์โทรศัพท์ต้องมี 10 ตัวเลข';
                 if (!v.startsWith('0')) {
-                   return 'เบอร์โทรต้องขึ้นต้นด้วย 0 เท่านั้น';
+                   return 'เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0 เท่านั้น';
                 }
                 return null;
               },
@@ -350,7 +367,7 @@ class RegisterSchoolWidgets {
                   ),
                 ),
                 const SizedBox(width: 16),
-                getLocationButton,
+                openMapButton,
               ],
             ),
             

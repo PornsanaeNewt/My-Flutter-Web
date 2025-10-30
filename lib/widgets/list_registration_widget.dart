@@ -15,7 +15,6 @@ class ListRegistrationWidget extends StatelessWidget {
   final String selectedStatus;
   final Function(String?) onStatusChanged;
 
-
   const ListRegistrationWidget({
     super.key,
     required this.searchController,
@@ -27,8 +26,25 @@ class ListRegistrationWidget extends StatelessWidget {
     required this.onSearchChanged,
     required this.allStatuses,
     required this.selectedStatus, 
-    required this.onStatusChanged, 
+    required this.onStatusChanged,
   });
+
+  String _translateStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'all':
+        return 'ทั้งหมด';
+      case 'in progress':
+        return 'อยู่ระหว่างดำเนินการ';
+      case 'payment completed':
+        return 'ชำระเงินเรียบร้อย';
+      case 'completed':
+        return 'เสร็จสมบูรณ์';
+      case 'reviewed':
+        return 'แสดงความคิดเห็นแล้ว';
+      default:
+        return 'ไม่ระบุสถานะ';
+    }
+  }
 
   Widget _buildFilterDropdown() {
     return Container(
@@ -48,7 +64,7 @@ class ListRegistrationWidget extends StatelessWidget {
           items: allStatuses.map((String status) {
             return DropdownMenuItem<String>(
               value: status,
-              child: Text(status),
+              child: Text(_translateStatus(status)), 
             );
           }).toList(),
           onChanged: onStatusChanged,
@@ -60,9 +76,8 @@ class ListRegistrationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
+
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -117,9 +132,8 @@ class ListRegistrationWidget extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           
-          _buildBody(),
+          Expanded(child: _buildBody()),
         ],
-      ),
     );
   }
 
@@ -134,109 +148,98 @@ class ListRegistrationWidget extends StatelessWidget {
       return Center(child: Text('ไม่พบข้อมูลผู้ลงทะเบียน', style: TextStyles.body.copyWith(color: AppColors.secondaryText)));
     }
     
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.formBackground, 
-          border: Border.all(color: AppColors.inputBorder, width: 1.0),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                  child: Material(
-                    color: AppColors.formBackground,
-                    child: DataTable(
-                      columnSpacing: 28,
-                      headingRowHeight: 50,
-                      dataRowHeight: 60,
-                      
-                      headingRowColor: MaterialStateProperty.all(AppColors.subtleGray), 
-                      headingTextStyle: TextStyles.label.copyWith(color: AppColors.primaryBlack, fontWeight: FontWeight.bold),
-                      
-                      dataRowColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-                        if (states.contains(MaterialState.selected)) {
-                          return AppColors.lightAccent;
-                        }
-                        return AppColors.formBackground;
-                      }),
-                      
-                      border: TableBorder.symmetric(
-                        inside: BorderSide(color: AppColors.inputBorder, width: 1),
-                        outside: BorderSide.none,
-                      ),
-
-                      columns: [
-                        const DataColumn(label: Text('ชื่อนักเรียน')),
-                        const DataColumn(label: Text('อีเมล')),
-                        const DataColumn(label: Text('เบอร์โทร')),
-                        const DataColumn(label: Text('สถานะการลงทะเบียน')),
-                        DataColumn(
-                          label: Align(
-                            alignment: Alignment.centerRight,
-                            child: Text('จัดการ', style: TextStyles.label.copyWith(color: AppColors.primaryBlack)),
-                          ),
-                        ),
-                      ],
-                      rows: filteredRegistrations.map((data) {
-                        final String status = data['registStatus'] ?? 'N/A';
-                        Color statusColor = _getStatusColor(status);
-                        
-                        return DataRow(
-                          cells: [
-                            DataCell(Text('${data['stuName'] ?? ''} ${data['stuLname'] ?? ''}', style: TextStyles.body.copyWith(color: AppColors.primaryBlack, fontWeight: FontWeight.w500))),
-                            DataCell(Text(data['stuEmail'] ?? 'N/A', style: TextStyles.body.copyWith(color: AppColors.primaryBlack))),
-                            DataCell(Text(data['stuTel'] ?? 'N/A', style: TextStyles.body.copyWith(color: AppColors.primaryBlack))),
-                            DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(status, style: TextStyles.body.copyWith(color: statusColor, fontWeight: FontWeight.w600)),
-                              ),
-                            ),
-                            
-                            DataCell(
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.delete_outline, color: Colors.red.shade700), 
-                                      onPressed: () => onDeleteRegistration(
-                                        data['registId'],
-                                        status, 
-                                      ),
-                                      tooltip: 'ลบรายการลงทะเบียน',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.formBackground, 
+        border: Border.all(color: AppColors.inputBorder, width: 1.0),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: Material(
+                  color: AppColors.formBackground,
+                  child: DataTable(
+                    columnSpacing: 28,
+                    headingRowHeight: 50,
+                    dataRowHeight: 60,
+                    
+                    headingRowColor: MaterialStateProperty.all(AppColors.subtleGray), 
+                    headingTextStyle: TextStyles.label.copyWith(color: AppColors.primaryBlack, fontWeight: FontWeight.bold),
+                    
+                    dataRowColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return AppColors.lightAccent;
+                      }
+                      return AppColors.formBackground;
+                    }),
+                    
+                    border: TableBorder.symmetric(
+                      inside: BorderSide(color: AppColors.inputBorder, width: 1),
+                      outside: BorderSide.none,
                     ),
+
+                    columns: const [
+                      DataColumn(label: Text('ชื่อนักเรียน')),
+                      DataColumn(label: Text('อีเมล')),
+                      DataColumn(label: Text('เบอร์โทร')),
+                      DataColumn(label: Text('ที่อยู่')),
+                      DataColumn(label: Text('สถานะการลงทะเบียน')),
+  
+                    ],
+                    rows: filteredRegistrations.map((data) {
+                      final String rawStatus = data['registStatus'] ?? 'N/A';
+                      final String translatedStatus = _translateStatus(rawStatus);
+                      Color statusColor = _getStatusColor(rawStatus);
+                      
+                      return DataRow(
+                        cells: [
+                          DataCell(Text('${data['stuName'] ?? ''} ${data['stuLname'] ?? ''}', style: TextStyles.body.copyWith(color: AppColors.primaryBlack, fontWeight: FontWeight.w500))),
+                          DataCell(Text(data['stuEmail'] ?? 'N/A', style: TextStyles.body.copyWith(color: AppColors.primaryBlack))),
+                          DataCell(Text(data['stuTel'] ?? 'N/A', style: TextStyles.body.copyWith(color: AppColors.primaryBlack))),
+
+                          DataCell(
+                            Container(
+                              constraints: const BoxConstraints(maxWidth: 200), 
+                              child: Text(
+                                data['address'] ?? 'N/A', 
+                                style: TextStyles.body.copyWith(color: AppColors.primaryBlack),
+                                maxLines: 2, 
+                                overflow: TextOverflow.ellipsis, 
+                              ),
+                            )
+                          ),
+                          DataCell(
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(translatedStatus, style: TextStyles.body.copyWith(color: statusColor, fontWeight: FontWeight.w600)),
+                            ),
+                          ),
+                          
+                        ],
+                      );
+                    }).toList(),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -250,8 +253,6 @@ class ListRegistrationWidget extends StatelessWidget {
         return Colors.orange.shade700;
       case 'completed':
         return Colors.green.shade700;
-      case 'cancel':
-        return Colors.red.shade700;
       case 'reviewed':
         return AppColors.mutedBrown;
       default:

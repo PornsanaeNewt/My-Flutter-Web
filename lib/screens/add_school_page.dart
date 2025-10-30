@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../widgets/add_school_form.dart';
 
